@@ -1,6 +1,8 @@
 import type { OpenAPIHono } from "@hono/zod-openapi";
 import { auth } from "@/infrastructure/auth/better-auth";
+import { db } from "@/infrastructure/db/client";
 import { AppError } from "@/shared/errors/app-error";
+import { users as authUsers } from "../persistence/schema";
 import { z } from "zod";
 import { resolveLoginIdentifier } from "../application/resolve-identifier";
 
@@ -13,6 +15,20 @@ const unifiedLoginSchema = z.object({
 
 const requestOtpSchema = z.object({
   identifier: z.string().min(1),
+});
+
+const registerSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+  name: z.string().min(1),
+  username: z.string().min(3).optional(),
+});
+
+const createAdminUserSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(8),
+  name: z.string().min(1),
+  role: z.string().optional(),
 });
 
 function createAuthProxyRequest(
@@ -72,6 +88,19 @@ function resolveOtpEndpoint(identifier: ReturnType<typeof resolveLoginIdentifier
 }
 
 export function registerAuthRoutes(app: OpenAPIHono) {
+  app.post("/api/auth/register", async (c) => {
+    const body = registerSchema.parse(await c.req.json());
+
+    return auth.handler(
+      createAuthProxyRequest(c.req.raw, "/api/auth/sign-up/email", {
+        email: body.email,
+        password: body.password,
+        name: body.name,
+        username: body.username,
+      }),
+    );
+  });
+
   app.post("/api/auth/unified-login", async (c) => {
     const body = unifiedLoginSchema.parse(await c.req.json());
     const resolved = resolveLoginIdentifier(body.identifier);
@@ -125,6 +154,24 @@ export function registerAuthRoutes(app: OpenAPIHono) {
           );
 
     return response;
+  });
+
+  app.get("/api/admin/users", async (c) => {
+    const users = await db.select().from(authUsers).limit(50);
+    return c.json({ items: users });
+  });
+
+  app.post("/api/admin/users", async (c) => {
+    const body = createAdminUserSchema.parse(await c.req.json());
+
+    return auth.handler(
+      createAuthProxyRequest(c.req.raw, "/api/auth/admin/create-user", {
+        email: body.email,
+        password: body.password,
+        name: body.name,
+        role: body.role ?? "admin",
+      }),
+    );
   });
 
   app.all("/api/auth/*", (c) => auth.handler(c.req.raw));
