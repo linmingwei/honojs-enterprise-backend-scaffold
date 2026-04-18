@@ -1,6 +1,8 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
 import type { AppConfig } from "@/shared/config/types";
 import { registerModules } from "@/app/bootstrap/module-registry";
+import { registerAuthModule } from "@/modules/auth";
+import { registerStorageModule } from "@/modules/storage";
 import { registerDocs } from "./docs";
 
 export function createApp(config: AppConfig) {
@@ -10,11 +12,11 @@ export function createApp(config: AppConfig) {
   registerDocs(app);
 
   registerModules(config, {
-    auth: () => {},
+    auth: () => registerAuthModule(app, config),
     tenant: () => {},
     rbac: () => {},
     audit: () => {},
-    storage: () => {},
+    storage: () => registerStorageModule(app, config),
     cache: () => {},
     queue: () => {},
     scheduler: () => {},
