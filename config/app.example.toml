@@ -1,0 +1,45 @@
+[features.auth]
+enabled = true
+
+[features.tenant]
+enabled = true
+
+[features.rbac]
+enabled = true
+
+[features.audit]
+enabled = true
+
+[features.storage]
+enabled = true
+
+[features.cache]
+enabled = true
+
+[features.queue]
+enabled = true
+
+[features.scheduler]
+enabled = true
+
+[features.payment]
+enabled = false
+
+[features.notify]
+enabled = false
+
+[providers]
+storage = "r2"
+cache = "redis"
+queue = "bullmq"
+
+[auth]
+baseUrl = "http://localhost:3000"
+
+[storage.r2]
+bucket = ""
+endpoint = ""
+
+[storage.oss]
+region = ""
+bucket = ""
