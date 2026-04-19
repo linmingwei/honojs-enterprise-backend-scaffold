@@ -1,9 +1,11 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
+import { eq } from "drizzle-orm";
 import { db } from "@/infrastructure/db/client";
 import { userTenantRoles } from "@/modules/rbac/persistence/schema";
+import { acceptTenantInvitation } from "../application/accept-invitation";
 import { assignTenantRole } from "../application/roles";
 import { createTenantInvitation } from "../application/invitations";
-import { tenants } from "../persistence/schema";
+import { tenantMemberships, tenants } from "../persistence/schema";
 
 const createTenantRoute = createRoute({
   method: "post",
@@ -106,6 +108,68 @@ const assignTenantRoleRoute = createRoute({
   },
 });
 
+const acceptInvitationRoute = createRoute({
+  method: "post",
+  path: "/api/public/tenant-invitations/accept",
+  request: {
+    body: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            token: z.string().min(1),
+            userId: z.string().min(1),
+          }),
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: "Invitation accepted",
+      content: {
+        "application/json": {
+          schema: z.object({
+            invitationId: z.string(),
+            tenantId: z.string(),
+            userId: z.string(),
+            status: z.string(),
+            membershipId: z.string().nullable().optional(),
+          }),
+        },
+      },
+    },
+  },
+});
+
+const listTenantMembersRoute = createRoute({
+  method: "get",
+  path: "/api/admin/tenants/{tenantId}/members",
+  request: {
+    params: z.object({
+      tenantId: z.string().min(1),
+    }),
+  },
+  responses: {
+    200: {
+      description: "Tenant members",
+      content: {
+        "application/json": {
+          schema: z.object({
+            items: z.array(
+              z.object({
+                id: z.string(),
+                tenantId: z.string(),
+                userId: z.string(),
+                status: z.string(),
+              }),
+            ),
+          }),
+        },
+      },
+    },
+  },
+});
+
 export type TenantRouteServices = {
   createTenant: (input: { name: string; slug: string }) => Promise<{
     id: string;
@@ -132,6 +196,25 @@ export type TenantRouteServices = {
     userId: string;
     roleId: string;
   }>;
+  acceptInvitation: (input: {
+    token: string;
+    userId: string;
+  }) => Promise<{
+    invitationId: string;
+    tenantId: string;
+    userId: string;
+    status: string;
+    membershipId?: string | null;
+    token?: string;
+  }>;
+  listMembers: (input: { tenantId: string }) => Promise<
+    {
+      id: string;
+      tenantId: string;
+      userId: string;
+      status: string;
+    }[]
+  >;
 };
 
 const defaultTenantRouteServices: TenantRouteServices = {
@@ -170,6 +253,16 @@ const defaultTenantRouteServices: TenantRouteServices = {
 
     return created;
   },
+  acceptInvitation: ({ token, userId }) =>
+    acceptTenantInvitation({
+      token,
+      userId,
+    }),
+  listMembers: ({ tenantId }) =>
+    db
+      .select()
+      .from(tenantMemberships)
+      .where(eq(tenantMemberships.tenantId, tenantId)),
 };
 
 export function registerTenantRoutes(
@@ -202,5 +295,20 @@ export function registerTenantRoutes(
       roleId: body.roleId,
     });
     return c.json(created);
+  });
+
+  app.openapi(acceptInvitationRoute, async (c) => {
+    const body = c.req.valid("json");
+    const accepted = await services.acceptInvitation(body);
+    return c.json(accepted);
+  });
+
+  app.openapi(listTenantMembersRoute, async (c) => {
+    const params = c.req.valid("param");
+    const members = await services.listMembers({
+      tenantId: params.tenantId,
+    });
+
+    return c.json({ items: members });
   });
 }
