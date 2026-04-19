@@ -65,6 +65,26 @@ function createTenantRouteServices(): TenantRouteServices {
       userId,
       status: "inactive",
     }),
+    listRoles: async () => [
+      {
+        id: "role-1",
+        scope: "tenant",
+        name: "tenant-admin",
+      },
+      {
+        id: "role-2",
+        scope: "tenant",
+        name: "tenant-member",
+      },
+    ],
+    listMemberRoles: async ({ tenantId, userId }) => [
+      {
+        id: "role-1",
+        tenantId,
+        userId,
+        roleId: "role-1",
+      },
+    ],
   };
 }
 
@@ -249,6 +269,50 @@ describe("tenant admin routes", () => {
       tenantId: "tenant-1",
       userId: "user-1",
       status: "inactive",
+    });
+  });
+
+  it("lists tenant role catalog through the tenant module service boundary", async () => {
+    const app = new OpenAPIHono();
+
+    registerTenantRoutes(app, createTenantRouteServices());
+
+    const rolesRes = await app.request("/api/admin/tenants/tenant-1/roles");
+
+    expect(rolesRes.status).toBe(200);
+    expect(await rolesRes.json()).toEqual({
+      items: [
+        {
+          id: "role-1",
+          scope: "tenant",
+          name: "tenant-admin",
+        },
+        {
+          id: "role-2",
+          scope: "tenant",
+          name: "tenant-member",
+        },
+      ],
+    });
+  });
+
+  it("lists member role assignments through the tenant module service boundary", async () => {
+    const app = new OpenAPIHono();
+
+    registerTenantRoutes(app, createTenantRouteServices());
+
+    const memberRolesRes = await app.request("/api/admin/tenants/tenant-1/members/user-1/roles");
+
+    expect(memberRolesRes.status).toBe(200);
+    expect(await memberRolesRes.json()).toEqual({
+      items: [
+        {
+          id: "role-1",
+          tenantId: "tenant-1",
+          userId: "user-1",
+          roleId: "role-1",
+        },
+      ],
     });
   });
 });

@@ -4,7 +4,12 @@ import { db } from "@/infrastructure/db/client";
 import { userTenantRoles } from "@/modules/rbac/persistence/schema";
 import { acceptTenantInvitation } from "../application/accept-invitation";
 import { deactivateTenantMember } from "../application/members";
-import { assignTenantRole, revokeTenantRole } from "../application/roles";
+import {
+  assignTenantRole,
+  listTenantMemberRoles,
+  listTenantRoles,
+  revokeTenantRole,
+} from "../application/roles";
 import {
   createTenantInvitation,
   listTenantInvitations,
@@ -181,6 +186,34 @@ const revokeTenantRoleRoute = createRoute({
   },
 });
 
+const listTenantRolesRoute = createRoute({
+  method: "get",
+  path: "/api/admin/tenants/{tenantId}/roles",
+  request: {
+    params: z.object({
+      tenantId: z.string().min(1),
+    }),
+  },
+  responses: {
+    200: {
+      description: "Tenant role catalog",
+      content: {
+        "application/json": {
+          schema: z.object({
+            items: z.array(
+              z.object({
+                id: z.string(),
+                scope: z.string(),
+                name: z.string(),
+              }),
+            ),
+          }),
+        },
+      },
+    },
+  },
+});
+
 const listTenantInvitationsRoute = createRoute({
   method: "get",
   path: "/api/admin/tenants/{tenantId}/invitations",
@@ -230,6 +263,36 @@ const listTenantMembersRoute = createRoute({
                 tenantId: z.string(),
                 userId: z.string(),
                 status: z.string(),
+              }),
+            ),
+          }),
+        },
+      },
+    },
+  },
+});
+
+const listTenantMemberRolesRoute = createRoute({
+  method: "get",
+  path: "/api/admin/tenants/{tenantId}/members/{userId}/roles",
+  request: {
+    params: z.object({
+      tenantId: z.string().min(1),
+      userId: z.string().min(1),
+    }),
+  },
+  responses: {
+    200: {
+      description: "Tenant member role assignments",
+      content: {
+        "application/json": {
+          schema: z.object({
+            items: z.array(
+              z.object({
+                id: z.string(),
+                tenantId: z.string(),
+                userId: z.string(),
+                roleId: z.string(),
               }),
             ),
           }),
@@ -327,6 +390,13 @@ export type TenantRouteServices = {
     roleId: string;
     revoked: boolean;
   }>;
+  listRoles: (input: { tenantId: string }) => Promise<
+    {
+      id: string;
+      scope: string;
+      name: string;
+    }[]
+  >;
   acceptInvitation: (input: {
     token: string;
     userId: string;
@@ -372,6 +442,17 @@ export type TenantRouteServices = {
     userId: string;
     status: string;
   }>;
+  listMemberRoles: (input: {
+    tenantId: string;
+    userId: string;
+  }) => Promise<
+    {
+      id: string;
+      tenantId: string;
+      userId: string;
+      roleId: string;
+    }[]
+  >;
 };
 
 const defaultTenantRouteServices: TenantRouteServices = {
@@ -416,6 +497,7 @@ const defaultTenantRouteServices: TenantRouteServices = {
       userId,
       roleId,
     }),
+  listRoles: () => listTenantRoles(),
   acceptInvitation: ({ token, userId }) =>
     acceptTenantInvitation({
       token,
@@ -434,6 +516,11 @@ const defaultTenantRouteServices: TenantRouteServices = {
     }),
   deactivateMember: ({ tenantId, userId }) =>
     deactivateTenantMember({
+      tenantId,
+      userId,
+    }),
+  listMemberRoles: ({ tenantId, userId }) =>
+    listTenantMemberRoles({
       tenantId,
       userId,
     }),
@@ -482,6 +569,15 @@ export function registerTenantRoutes(
     return c.json(revoked);
   });
 
+  app.openapi(listTenantRolesRoute, async (c) => {
+    const params = c.req.valid("param");
+    const roles = await services.listRoles({
+      tenantId: params.tenantId,
+    });
+
+    return c.json({ items: roles });
+  });
+
   app.openapi(acceptInvitationRoute, async (c) => {
     const body = c.req.valid("json");
     const accepted = await services.acceptInvitation(body);
@@ -514,6 +610,16 @@ export function registerTenantRoutes(
     });
 
     return c.json(membership);
+  });
+
+  app.openapi(listTenantMemberRolesRoute, async (c) => {
+    const params = c.req.valid("param");
+    const roles = await services.listMemberRoles({
+      tenantId: params.tenantId,
+      userId: params.userId,
+    });
+
+    return c.json({ items: roles });
   });
 
   app.openapi(revokeTenantInvitationRoute, async (c) => {

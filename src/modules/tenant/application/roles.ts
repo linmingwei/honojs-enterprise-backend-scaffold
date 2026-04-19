@@ -1,6 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "@/infrastructure/db/client";
-import { userTenantRoles } from "@/modules/rbac/persistence/schema";
+import { roles, userTenantRoles } from "@/modules/rbac/persistence/schema";
 
 export type AssignTenantRoleInput = {
   tenantId: string;
@@ -50,4 +50,23 @@ export async function revokeTenantRole(input: AssignTenantRoleInput) {
     roleId: input.roleId,
     revoked: Boolean(revoked),
   };
+}
+
+export async function listTenantRoles() {
+  return db.select().from(roles).where(eq(roles.scope, "tenant"));
+}
+
+export async function listTenantMemberRoles(input: {
+  tenantId: string;
+  userId: string;
+}) {
+  return db
+    .select()
+    .from(userTenantRoles)
+    .where(
+      and(
+        eq(userTenantRoles.tenantId, input.tenantId),
+        eq(userTenantRoles.userId, input.userId),
+      ),
+    );
 }
