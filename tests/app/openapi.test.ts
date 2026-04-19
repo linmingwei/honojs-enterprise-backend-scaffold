@@ -32,6 +32,8 @@ describe("OpenAPI exposure", () => {
 
     const spec = await openapiRes.json();
     expect(spec.paths["/api/admin/users"]).toBeDefined();
+    expect(spec.paths["/api/admin/users"].get).toBeDefined();
+    expect(spec.paths["/api/admin/users"].post).toBeDefined();
     expect(spec.paths["/api/admin/storage/sign-upload"]).toBeUndefined();
   });
 });

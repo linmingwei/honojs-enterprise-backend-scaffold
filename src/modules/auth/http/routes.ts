@@ -79,6 +79,30 @@ const listAdminUsersRoute = createRoute({
   },
 });
 
+const createAdminUserRoute = createRoute({
+  method: "post",
+  path: "/api/admin/users",
+  request: {
+    body: {
+      content: {
+        "application/json": {
+          schema: createAdminUserSchema,
+        },
+      },
+    },
+  },
+  responses: {
+    200: {
+      description: "Admin user created",
+      content: {
+        "application/json": {
+          schema: z.object({}).passthrough(),
+        },
+      },
+    },
+  },
+});
+
 function createAuthProxyRequest(
   request: Request,
   pathname: string,
@@ -241,10 +265,10 @@ export function registerAuthRoutes(
     return c.json({ items: users });
   });
 
-  app.post("/api/admin/users", async (c) => {
+  app.openapi(createAdminUserRoute, async (c) => {
     const body = createAdminUserSchema.parse(await c.req.json());
 
-    return auth.handler(
+    const response = await auth.handler(
       createAuthProxyRequest(c.req.raw, "/api/auth/admin/create-user", {
         email: body.email,
         password: body.password,
@@ -252,6 +276,10 @@ export function registerAuthRoutes(
         role: body.role ?? "admin",
       }),
     );
+
+    // Better Auth returns a raw Response here; keep that behavior and only bridge
+    // the OpenAPI handler type so the route can still be documented.
+    return response as never;
   });
 
   app.all("/api/auth/*", (c) => auth.handler(c.req.raw));
