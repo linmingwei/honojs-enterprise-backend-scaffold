@@ -25,7 +25,7 @@ describe("feature flags", () => {
       payment: { provider: "none" },
       notify: { emailProvider: "none", smsProvider: "none" },
       storage: {
-        r2: { bucket: "", endpoint: "" },
+        r2: { bucket: "dev-bucket", endpoint: "https://r2.example.com" },
         oss: { region: "", bucket: "" },
       },
     });

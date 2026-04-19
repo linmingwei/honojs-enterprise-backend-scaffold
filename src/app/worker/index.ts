@@ -1,16 +1,13 @@
-import { Worker } from "bullmq";
-import { createRedisClient } from "@/infrastructure/redis/client";
+import { appModules } from "@/app/bootstrap/app-modules";
+import { getEnabledModules } from "@/app/bootstrap/module-registry";
+import { loadConfig } from "@/shared/config/load-config";
 
 export function startWorker() {
-  const connection = createRedisClient();
+  const config = loadConfig();
 
-  return new Worker(
-    "default",
-    async (job) => {
-      console.info("processing job", { name: job.name });
-    },
-    { connection },
-  );
+  return getEnabledModules(config, appModules)
+    .map((module) => module.registerWorker?.(config))
+    .filter((worker) => worker !== undefined);
 }
 
 if (import.meta.main) {

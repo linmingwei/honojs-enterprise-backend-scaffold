@@ -1,4 +1,4 @@
-import { Queue } from "bullmq";
+import { Queue, Worker } from "bullmq";
 import { createRedisClient } from "@/infrastructure/redis/client";
 
 export type QueueBus = {
@@ -24,4 +24,19 @@ export function createQueueBus(
     schedule: (name, data, pattern) =>
       getQueue().upsertJobScheduler(name, { pattern }, { name, data }),
   };
+}
+
+export function createQueueWorker(
+  url = process.env.REDIS_URL ?? "redis://127.0.0.1:6379",
+  queueName = "default",
+) {
+  const connection = createRedisClient(url);
+
+  return new Worker(
+    queueName,
+    async (job) => {
+      console.info("processing job", { name: job.name });
+    },
+    { connection },
+  );
 }

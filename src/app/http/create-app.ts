@@ -1,29 +1,21 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
+import { appModules } from "@/app/bootstrap/app-modules";
+import { getEnabledModules } from "@/app/bootstrap/module-registry";
 import type { AppConfig } from "@/shared/config/types";
-import { registerModules } from "@/app/bootstrap/module-registry";
-import { registerAuthModule } from "@/modules/auth";
-import { registerStorageModule } from "@/modules/storage";
-import { registerTenantModule } from "@/modules/tenant";
+import { validateEnabledProviders } from "@/shared/config/validate-enabled-providers";
 import { registerDocs } from "./docs";
 
 export function createApp(config: AppConfig) {
+  validateEnabledProviders(config);
+
   const app = new OpenAPIHono();
 
   app.get("/healthz", (c) => c.json({ ok: true }));
   registerDocs(app);
 
-  registerModules(config, {
-    auth: () => registerAuthModule(app, config),
-    tenant: () => registerTenantModule(app, config),
-    rbac: () => {},
-    audit: () => {},
-    storage: () => registerStorageModule(app, config),
-    cache: () => {},
-    queue: () => {},
-    scheduler: () => {},
-    payment: () => {},
-    notify: () => {},
-  });
+  for (const module of getEnabledModules(config, appModules)) {
+    module.registerHttp?.(app, config);
+  }
 
   return app;
 }
