@@ -18,6 +18,12 @@ describe("OpenAPI exposure", () => {
       },
       providers: { storage: "r2", cache: "redis", queue: "bullmq" },
       auth: { baseUrl: "http://localhost:3000" },
+      db: { url: "postgres://example" },
+      redis: { url: "" },
+      queue: { defaultQueueName: "default" },
+      scheduler: { heartbeatCron: "*/5 * * * *" },
+      payment: { provider: "none" },
+      notify: { emailProvider: "none", smsProvider: "none" },
       storage: {
         r2: { bucket: "", endpoint: "" },
         oss: { region: "", bucket: "" },

@@ -25,6 +25,25 @@ export const appConfigSchema = z.object({
   auth: z.object({
     baseUrl: z.string().url(),
   }),
+  db: z.object({
+    url: z.string().min(1),
+  }),
+  redis: z.object({
+    url: z.string(),
+  }),
+  queue: z.object({
+    defaultQueueName: z.string().min(1),
+  }),
+  scheduler: z.object({
+    heartbeatCron: z.string().min(1),
+  }),
+  payment: z.object({
+    provider: z.enum(["none", "wechat-pay"]),
+  }),
+  notify: z.object({
+    emailProvider: z.enum(["none", "stub"]),
+    smsProvider: z.enum(["none", "stub"]),
+  }),
   storage: z.object({
     r2: z.object({
       bucket: z.string(),
