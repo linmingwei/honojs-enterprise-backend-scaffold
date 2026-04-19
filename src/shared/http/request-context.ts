@@ -11,3 +11,12 @@ export function createAnonymousSecurityContext(): RequestSecurityContext {
     tenantPermissions: new Set<string>(),
   };
 }
+
+export function parsePermissionHeader(value: string | undefined) {
+  return new Set(
+    (value ?? "")
+      .split(",")
+      .map((item) => item.trim())
+      .filter(Boolean),
+  );
+}
