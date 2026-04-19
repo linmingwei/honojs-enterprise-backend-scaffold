@@ -1,10 +1,9 @@
-import type { OpenAPIHono } from "@hono/zod-openapi";
+import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { and, desc, eq, ilike, or } from "drizzle-orm";
 import { auth } from "@/infrastructure/auth/better-auth";
 import { db } from "@/infrastructure/db/client";
 import { AppError } from "@/shared/errors/app-error";
 import { users as authUsers } from "../persistence/schema";
-import { z } from "zod";
 import { resolveLoginIdentifier } from "../application/resolve-identifier";
 
 const unifiedLoginSchema = z.object({
@@ -52,6 +51,33 @@ export type AuthRouteServices = {
     }[]
   >;
 };
+
+const listAdminUsersRoute = createRoute({
+  method: "get",
+  path: "/api/admin/users",
+  request: {
+    query: listAdminUsersSchema,
+  },
+  responses: {
+    200: {
+      description: "Admin user list",
+      content: {
+        "application/json": {
+          schema: z.object({
+            items: z.array(
+              z.object({
+                id: z.string(),
+                email: z.string().email(),
+                name: z.string(),
+                role: z.string().nullable(),
+              }),
+            ),
+          }),
+        },
+      },
+    },
+  },
+});
 
 function createAuthProxyRequest(
   request: Request,
@@ -209,8 +235,8 @@ export function registerAuthRoutes(
     return response;
   });
 
-  app.get("/api/admin/users", async (c) => {
-    const query = listAdminUsersSchema.parse(c.req.query());
+  app.openapi(listAdminUsersRoute, async (c) => {
+    const query = c.req.valid("query");
     const users = await services.listUsers(query);
     return c.json({ items: users });
   });
