@@ -58,7 +58,7 @@ Planned file layout and responsibilities:
 - Create: `config/app.example.toml`
 - Create: `drizzle.config.ts`
 
-- [ ] **Step 1: Create the baseline project files**
+- [x] **Step 1: Create the baseline project files**
 
 ```json
 {
@@ -251,12 +251,12 @@ export default defineConfig({
 });
 ```
 
-- [ ] **Step 2: Install dependencies and initialize git**
+- [x] **Step 2: Install dependencies and initialize git**
 
 Run: `bun install && git init`
 Expected: Bun installs dependencies successfully and `.git/` is created.
 
-- [ ] **Step 3: Commit the baseline**
+- [x] **Step 3: Commit the baseline**
 
 Run: `git add package.json tsconfig.json bunfig.toml .gitignore .env.example config/app.toml config/app.example.toml drizzle.config.ts && git commit -m "chore: initialize hono enterprise scaffold"`
 Expected: One baseline commit containing the toolchain and config examples.
@@ -271,7 +271,7 @@ Expected: One baseline commit containing the toolchain and config examples.
 - Create: `src/app/http/server.ts`
 - Test: `tests/smoke/boot.test.ts`
 
-- [ ] **Step 1: Write the failing smoke test**
+- [x] **Step 1: Write the failing smoke test**
 
 ```ts
 import { describe, expect, it } from "bun:test";
@@ -307,12 +307,12 @@ describe("app boot", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `bun test tests/smoke/boot.test.ts`
 Expected: FAIL because `createApp` and config types do not exist yet.
 
-- [ ] **Step 3: Implement minimal config loading and app bootstrap**
+- [x] **Step 3: Implement minimal config loading and app bootstrap**
 
 ```ts
 import { z } from "zod";
@@ -393,12 +393,12 @@ export default {
 };
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `bun test tests/smoke/boot.test.ts`
 Expected: PASS with one passing smoke test.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Run: `git add src/shared/config src/shared/errors src/app/http tests/smoke/boot.test.ts && git commit -m "feat: boot hono app with typed config"`
 Expected: Commit records the bootable baseline.
@@ -411,7 +411,7 @@ Expected: Commit records the bootable baseline.
 - Create: `src/modules/core/module.ts`
 - Test: `tests/app/module-registry.test.ts`
 
-- [ ] **Step 1: Write the failing module-registry test**
+- [x] **Step 1: Write the failing module-registry test**
 
 ```ts
 import { describe, expect, it } from "bun:test";
@@ -448,12 +448,12 @@ describe("module registry", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `bun test tests/app/module-registry.test.ts`
 Expected: FAIL because the registry and module descriptor types do not exist.
 
-- [ ] **Step 3: Implement the registry and wire it into app creation**
+- [x] **Step 3: Implement the registry and wire it into app creation**
 
 ```ts
 import type { AppConfig } from "@/shared/config/types";
@@ -506,12 +506,12 @@ export function createApp(config: AppConfig) {
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `bun test tests/app/module-registry.test.ts`
 Expected: PASS and confirm disabled modules are skipped.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Run: `git add src/app/bootstrap src/app/http/create-app.ts src/modules/core/module.ts tests/app/module-registry.test.ts && git commit -m "feat: add feature-aware module registry"`
 Expected: Commit records registry behavior.
@@ -526,7 +526,7 @@ Expected: Commit records registry behavior.
 - Create: `src/modules/storage/persistence/schema.ts`
 - Test: `tests/infrastructure/db/schema.test.ts`
 
-- [ ] **Step 1: Write the failing schema export test**
+- [x] **Step 1: Write the failing schema export test**
 
 ```ts
 import { describe, expect, it } from "bun:test";
@@ -547,12 +547,12 @@ describe("schema exports", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `bun test tests/infrastructure/db/schema.test.ts`
 Expected: FAIL because the schema files do not exist.
 
-- [ ] **Step 3: Implement Drizzle client and core schema files**
+- [x] **Step 3: Implement Drizzle client and core schema files**
 
 ```ts
 import postgres from "postgres";
@@ -632,12 +632,12 @@ export const files = pgTable("files", {
 });
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `bun test tests/infrastructure/db/schema.test.ts`
 Expected: PASS and confirm the core tables are exported.
 
-- [ ] **Step 5: Generate a migration and commit**
+- [x] **Step 5: Generate a migration and commit**
 
 Run: `bun run db:generate && git add src/infrastructure/db src/modules/*/persistence drizzle && git commit -m "feat: add core tenant rbac audit and storage schema"`
 Expected: Drizzle migration files are generated and committed.
@@ -651,7 +651,7 @@ Expected: Drizzle migration files are generated and committed.
 - Create: `src/modules/auth/index.ts`
 - Test: `tests/modules/auth/resolve-identifier.test.ts`
 
-- [ ] **Step 1: Write the failing identifier-resolution test**
+- [x] **Step 1: Write the failing identifier-resolution test**
 
 ```ts
 import { describe, expect, it } from "bun:test";
@@ -666,12 +666,12 @@ describe("resolveLoginIdentifier", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `bun test tests/modules/auth/resolve-identifier.test.ts`
 Expected: FAIL because the auth module does not exist yet.
 
-- [ ] **Step 3: Implement identifier resolution and auth wiring**
+- [x] **Step 3: Implement identifier resolution and auth wiring**
 
 ```ts
 const emailPattern = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;
@@ -752,12 +752,12 @@ export function registerAuthModule(app: OpenAPIHono) {
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `bun test tests/modules/auth/resolve-identifier.test.ts`
 Expected: PASS and prove the unified facade can classify identifiers correctly.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Run: `git add src/infrastructure/auth src/modules/auth tests/modules/auth/resolve-identifier.test.ts && git commit -m "feat: add better auth integration and unified login facade"`
 Expected: Commit records the identity layer.
@@ -771,7 +771,7 @@ Expected: Commit records the identity layer.
 - Create: `src/modules/tenant/http/tenant-context.ts`
 - Test: `tests/modules/rbac/require-permission.test.ts`
 
-- [ ] **Step 1: Write the failing permission-guard test**
+- [x] **Step 1: Write the failing permission-guard test**
 
 ```ts
 import { describe, expect, it } from "bun:test";
@@ -789,12 +789,12 @@ describe("hasPermission", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `bun test tests/modules/rbac/require-permission.test.ts`
 Expected: FAIL because request-context helpers do not exist.
 
-- [ ] **Step 3: Implement the request context and permission guard**
+- [x] **Step 3: Implement the request context and permission guard**
 
 ```ts
 export type RequestSecurityContext = {
@@ -832,12 +832,12 @@ export async function attachTenantContext(c: Context, next: Next) {
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `bun test tests/modules/rbac/require-permission.test.ts`
 Expected: PASS and prove permission checks can read the normalized request context.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Run: `git add src/shared/http src/modules/rbac src/modules/tenant/http tests/modules/rbac/require-permission.test.ts && git commit -m "feat: add tenant context and permission guards"`
 Expected: Commit records the authorization primitives.
@@ -849,7 +849,7 @@ Expected: Commit records the authorization primitives.
 - Create: `src/app/http/docs.ts`
 - Test: `tests/app/openapi.test.ts`
 
-- [ ] **Step 1: Write the failing OpenAPI test**
+- [x] **Step 1: Write the failing OpenAPI test**
 
 ```ts
 import { describe, expect, it } from "bun:test";
@@ -880,12 +880,12 @@ describe("OpenAPI exposure", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `bun test tests/app/openapi.test.ts`
 Expected: FAIL because docs routes are not mounted.
 
-- [ ] **Step 3: Mount route groups and docs**
+- [x] **Step 3: Mount route groups and docs**
 
 ```ts
 import { swaggerUI } from "@hono/swagger-ui";
@@ -925,12 +925,12 @@ export function createApp(config: AppConfig) {
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `bun test tests/app/openapi.test.ts`
 Expected: PASS and confirm Swagger UI is exposed at `/docs`.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Run: `git add src/app/http tests/app/openapi.test.ts && git commit -m "feat: expose openapi and swagger routes"`
 Expected: Commit records route-group docs exposure.
@@ -946,7 +946,7 @@ Expected: Commit records route-group docs exposure.
 - Create: `src/app/scheduler/index.ts`
 - Test: `tests/infrastructure/queue/queue-contract.test.ts`
 
-- [ ] **Step 1: Write the failing queue-contract test**
+- [x] **Step 1: Write the failing queue-contract test**
 
 ```ts
 import { describe, expect, it } from "bun:test";
@@ -961,12 +961,12 @@ describe("queue bus", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `bun test tests/infrastructure/queue/queue-contract.test.ts`
 Expected: FAIL because the queue infrastructure is missing.
 
-- [ ] **Step 3: Implement Redis and BullMQ infrastructure**
+- [x] **Step 3: Implement Redis and BullMQ infrastructure**
 
 ```ts
 import IORedis from "ioredis";
@@ -1043,12 +1043,12 @@ await queueBus.schedule("heartbeat", { ok: true }, "*/5 * * * *");
 console.log("scheduler bootstrap completed");
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `bun test tests/infrastructure/queue/queue-contract.test.ts`
 Expected: PASS and confirm the queue bus exposes the expected contract.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Run: `git add src/infrastructure/redis src/infrastructure/cache src/infrastructure/lock src/infrastructure/queue src/app/worker src/app/scheduler tests/infrastructure/queue/queue-contract.test.ts && git commit -m "feat: add redis and bullmq infrastructure"`
 Expected: Commit records the async-task foundation.
@@ -1062,7 +1062,7 @@ Expected: Commit records the async-task foundation.
 - Create: `src/modules/storage/http/routes.ts`
 - Test: `tests/modules/storage/provider-selection.test.ts`
 
-- [ ] **Step 1: Write the failing provider-selection test**
+- [x] **Step 1: Write the failing provider-selection test**
 
 ```ts
 import { describe, expect, it } from "bun:test";
@@ -1076,12 +1076,12 @@ describe("object storage provider selection", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `bun test tests/modules/storage/provider-selection.test.ts`
 Expected: FAIL because the storage factory does not exist yet.
 
-- [ ] **Step 3: Implement the storage contract and provider factory**
+- [x] **Step 3: Implement the storage contract and provider factory**
 
 ```ts
 import { createOssStorage } from "../infrastructure/oss-storage";
@@ -1156,12 +1156,12 @@ export function registerStorageRoutes(app: OpenAPIHono) {
 }
 ```
 
-- [ ] **Step 4: Run the test to verify it passes**
+- [x] **Step 4: Run the test to verify it passes**
 
 Run: `bun test tests/modules/storage/provider-selection.test.ts`
 Expected: PASS and confirm provider selection is abstracted from callers.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Run: `git add src/modules/storage tests/modules/storage/provider-selection.test.ts && git commit -m "feat: add storage module with r2 default and oss boundary"`
 Expected: Commit records the storage contract and default provider.
@@ -1174,7 +1174,7 @@ Expected: Commit records the storage contract and default provider.
 - Create: `src/modules/notify/domain/email-sender.ts`
 - Create: `tests/smoke/features.test.ts`
 
-- [ ] **Step 1: Write the failing feature-switch smoke test**
+- [x] **Step 1: Write the failing feature-switch smoke test**
 
 ```ts
 import { describe, expect, it } from "bun:test";
@@ -1205,12 +1205,12 @@ describe("feature flags", () => {
 });
 ```
 
-- [ ] **Step 2: Run the test to verify it fails**
+- [x] **Step 2: Run the test to verify it fails**
 
 Run: `bun test tests/smoke/features.test.ts`
 Expected: FAIL only if the app currently hard-codes optional modules or requires provider secrets unconditionally.
 
-- [ ] **Step 3: Add interface-only modules and tighten app boot behavior**
+- [x] **Step 3: Add interface-only modules and tighten app boot behavior**
 
 ```ts
 export interface PaymentProvider {
@@ -1248,12 +1248,12 @@ export function validateEnabledProviders(config: AppConfig) {
 }
 ```
 
-- [ ] **Step 4: Run the full test suite**
+- [x] **Step 4: Run the full test suite**
 
 Run: `bun test && bun run typecheck`
 Expected: All tests pass and the codebase typechecks cleanly.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 Run: `git add src/modules/payment src/modules/notify tests/smoke/features.test.ts src/app/http/create-app.ts src/shared/config && git commit -m "feat: add feature-gated provider interfaces and smoke coverage"`
 Expected: Commit records the disabled-by-default enterprise extension boundaries.
