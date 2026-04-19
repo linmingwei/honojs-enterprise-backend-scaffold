@@ -29,10 +29,19 @@ export function createOssStorage(config: OssStorageConfig = {}) {
         },
       });
     },
+    get: async (key: string) => client.get(key),
+    delete: async (key: string) => {
+      await client.delete(key);
+    },
     signUpload: async (input: { key: string; contentType: string }) => ({
       url: client.signatureUrl(input.key, {
         method: "PUT",
         "Content-Type": input.contentType,
+      }),
+    }),
+    signDownload: async (key: string) => ({
+      url: client.signatureUrl(key, {
+        method: "GET",
       }),
     }),
   };

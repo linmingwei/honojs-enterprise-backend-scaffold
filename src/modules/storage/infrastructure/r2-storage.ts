@@ -1,4 +1,9 @@
-import { PutObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import {
+  DeleteObjectCommand,
+  GetObjectCommand,
+  PutObjectCommand,
+  S3Client,
+} from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 export type R2StorageConfig = {
@@ -37,6 +42,21 @@ export function createR2Storage(config: R2StorageConfig = {}) {
         }),
       );
     },
+    get: async (key: string) =>
+      client.send(
+        new GetObjectCommand({
+          Bucket: bucket,
+          Key: key,
+        }),
+      ),
+    delete: async (key: string) => {
+      await client.send(
+        new DeleteObjectCommand({
+          Bucket: bucket,
+          Key: key,
+        }),
+      );
+    },
     signUpload: async (input: { key: string; contentType: string }) => ({
       url: await getSignedUrl(
         client,
@@ -44,6 +64,16 @@ export function createR2Storage(config: R2StorageConfig = {}) {
           Bucket: bucket,
           Key: input.key,
           ContentType: input.contentType,
+        }),
+        { expiresIn: 300 },
+      ),
+    }),
+    signDownload: async (key: string) => ({
+      url: await getSignedUrl(
+        client,
+        new GetObjectCommand({
+          Bucket: bucket,
+          Key: key,
         }),
         { expiresIn: 300 },
       ),
