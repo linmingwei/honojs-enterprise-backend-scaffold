@@ -52,6 +52,10 @@ export type AuthRouteServices = {
   >;
 };
 
+export type AuthHandler = {
+  handler: (request: Request) => Promise<Response> | Response;
+};
+
 const listAdminUsersRoute = createRoute({
   method: "get",
   path: "/api/admin/users",
@@ -190,11 +194,12 @@ const defaultAuthRouteServices: AuthRouteServices = {
 export function registerAuthRoutes(
   app: OpenAPIHono,
   services: AuthRouteServices = defaultAuthRouteServices,
+  authHandler: AuthHandler = auth,
 ) {
   app.post("/api/auth/register", async (c) => {
     const body = registerSchema.parse(await c.req.json());
 
-    return auth.handler(
+    return authHandler.handler(
       createAuthProxyRequest(c.req.raw, "/api/auth/sign-up/email", {
         email: body.email,
         password: body.password,
@@ -218,7 +223,7 @@ export function registerAuthRoutes(
 
     if (body.password) {
       const endpoint = resolvePasswordEndpoint(resolved);
-      const response = await auth.handler(
+      const response = await authHandler.handler(
         createAuthProxyRequest(c.req.raw, endpoint.pathname, {
           [endpoint.key]: resolved.value,
           password: body.password,
@@ -229,7 +234,7 @@ export function registerAuthRoutes(
     }
 
     const endpoint = resolveOtpEndpoint(resolved);
-    const response = await auth.handler(
+    const response = await authHandler.handler(
       createAuthProxyRequest(c.req.raw, endpoint.pathname, {
         [endpoint.key]: resolved.value,
         [endpoint.otpKey]: body.otp,
@@ -244,13 +249,13 @@ export function registerAuthRoutes(
 
     const response =
       resolved.kind === "email"
-        ? await auth.handler(
+        ? await authHandler.handler(
             createAuthProxyRequest(c.req.raw, "/api/auth/email-otp/send-verification-otp", {
               email: resolved.value,
               type: "sign-in",
             }),
           )
-        : await auth.handler(
+        : await authHandler.handler(
             createAuthProxyRequest(c.req.raw, "/api/auth/phone-number/send-otp", {
               phoneNumber: resolved.value,
             }),
@@ -268,7 +273,7 @@ export function registerAuthRoutes(
   app.openapi(createAdminUserRoute, async (c) => {
     const body = createAdminUserSchema.parse(await c.req.json());
 
-    const response = await auth.handler(
+    const response = await authHandler.handler(
       createAuthProxyRequest(c.req.raw, "/api/auth/admin/create-user", {
         email: body.email,
         password: body.password,
@@ -282,5 +287,5 @@ export function registerAuthRoutes(
     return response as never;
   });
 
-  app.all("/api/auth/*", (c) => auth.handler(c.req.raw));
+  app.all("/api/auth/*", (c) => authHandler.handler(c.req.raw));
 }
