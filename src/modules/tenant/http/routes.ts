@@ -4,7 +4,11 @@ import { db } from "@/infrastructure/db/client";
 import { userTenantRoles } from "@/modules/rbac/persistence/schema";
 import { acceptTenantInvitation } from "../application/accept-invitation";
 import { assignTenantRole } from "../application/roles";
-import { createTenantInvitation } from "../application/invitations";
+import {
+  createTenantInvitation,
+  listTenantInvitations,
+  revokeTenantInvitation,
+} from "../application/invitations";
 import { tenantMemberships, tenants } from "../persistence/schema";
 
 const createTenantRoute = createRoute({
@@ -141,6 +145,35 @@ const acceptInvitationRoute = createRoute({
   },
 });
 
+const listTenantInvitationsRoute = createRoute({
+  method: "get",
+  path: "/api/admin/tenants/{tenantId}/invitations",
+  request: {
+    params: z.object({
+      tenantId: z.string().min(1),
+    }),
+  },
+  responses: {
+    200: {
+      description: "Tenant invitations",
+      content: {
+        "application/json": {
+          schema: z.object({
+            items: z.array(
+              z.object({
+                id: z.string(),
+                tenantId: z.string(),
+                email: z.string().email(),
+                status: z.string(),
+              }),
+            ),
+          }),
+        },
+      },
+    },
+  },
+});
+
 const listTenantMembersRoute = createRoute({
   method: "get",
   path: "/api/admin/tenants/{tenantId}/members",
@@ -163,6 +196,32 @@ const listTenantMembersRoute = createRoute({
                 status: z.string(),
               }),
             ),
+          }),
+        },
+      },
+    },
+  },
+});
+
+const revokeTenantInvitationRoute = createRoute({
+  method: "post",
+  path: "/api/admin/tenants/{tenantId}/invitations/{invitationId}/revoke",
+  request: {
+    params: z.object({
+      tenantId: z.string().min(1),
+      invitationId: z.string().min(1),
+    }),
+  },
+  responses: {
+    200: {
+      description: "Invitation revoked",
+      content: {
+        "application/json": {
+          schema: z.object({
+            id: z.string(),
+            tenantId: z.string(),
+            email: z.string().email(),
+            status: z.string(),
           }),
         },
       },
@@ -215,6 +274,23 @@ export type TenantRouteServices = {
       status: string;
     }[]
   >;
+  listInvitations: (input: { tenantId: string }) => Promise<
+    {
+      id: string;
+      tenantId: string;
+      email: string;
+      status: string;
+    }[]
+  >;
+  revokeInvitation: (input: {
+    tenantId: string;
+    invitationId: string;
+  }) => Promise<{
+    id: string;
+    tenantId: string;
+    email: string;
+    status: string;
+  }>;
 };
 
 const defaultTenantRouteServices: TenantRouteServices = {
@@ -263,6 +339,12 @@ const defaultTenantRouteServices: TenantRouteServices = {
       .select()
       .from(tenantMemberships)
       .where(eq(tenantMemberships.tenantId, tenantId)),
+  listInvitations: ({ tenantId }) => listTenantInvitations({ tenantId }),
+  revokeInvitation: ({ tenantId, invitationId }) =>
+    revokeTenantInvitation({
+      tenantId,
+      invitationId,
+    }),
 };
 
 export function registerTenantRoutes(
@@ -303,6 +385,15 @@ export function registerTenantRoutes(
     return c.json(accepted);
   });
 
+  app.openapi(listTenantInvitationsRoute, async (c) => {
+    const params = c.req.valid("param");
+    const invitations = await services.listInvitations({
+      tenantId: params.tenantId,
+    });
+
+    return c.json({ items: invitations });
+  });
+
   app.openapi(listTenantMembersRoute, async (c) => {
     const params = c.req.valid("param");
     const members = await services.listMembers({
@@ -310,5 +401,15 @@ export function registerTenantRoutes(
     });
 
     return c.json({ items: members });
+  });
+
+  app.openapi(revokeTenantInvitationRoute, async (c) => {
+    const params = c.req.valid("param");
+    const revoked = await services.revokeInvitation({
+      tenantId: params.tenantId,
+      invitationId: params.invitationId,
+    });
+
+    return c.json(revoked);
   });
 }

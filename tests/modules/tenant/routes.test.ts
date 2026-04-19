@@ -39,6 +39,20 @@ function createTenantRouteServices(): TenantRouteServices {
         status: "active",
       },
     ],
+    listInvitations: async ({ tenantId }) => [
+      {
+        id: "inv-1",
+        tenantId,
+        email: "member@example.com",
+        status: "pending",
+      },
+    ],
+    revokeInvitation: async ({ invitationId, tenantId }) => ({
+      id: invitationId,
+      tenantId,
+      email: "member@example.com",
+      status: "revoked",
+    }),
   };
 }
 
@@ -136,6 +150,47 @@ describe("tenant admin routes", () => {
           status: "active",
         },
       ],
+    });
+  });
+
+  it("lists tenant invitations through the tenant module service boundary", async () => {
+    const app = new OpenAPIHono();
+
+    registerTenantRoutes(app, createTenantRouteServices());
+
+    const invitationsRes = await app.request("/api/admin/tenants/tenant-1/invitations");
+
+    expect(invitationsRes.status).toBe(200);
+    expect(await invitationsRes.json()).toEqual({
+      items: [
+        {
+          id: "inv-1",
+          tenantId: "tenant-1",
+          email: "member@example.com",
+          status: "pending",
+        },
+      ],
+    });
+  });
+
+  it("revokes tenant invitations through the tenant module service boundary", async () => {
+    const app = new OpenAPIHono();
+
+    registerTenantRoutes(app, createTenantRouteServices());
+
+    const revokeRes = await app.request(
+      "/api/admin/tenants/tenant-1/invitations/inv-1/revoke",
+      {
+        method: "POST",
+      },
+    );
+
+    expect(revokeRes.status).toBe(200);
+    expect(await revokeRes.json()).toEqual({
+      id: "inv-1",
+      tenantId: "tenant-1",
+      email: "member@example.com",
+      status: "revoked",
     });
   });
 });

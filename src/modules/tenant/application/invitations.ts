@@ -1,3 +1,4 @@
+import { and, eq } from "drizzle-orm";
 import { db } from "@/infrastructure/db/client";
 import { tenantInvitations } from "../persistence/schema";
 
@@ -27,4 +28,36 @@ export async function createTenantInvitation(input: TenantInvitationInput) {
     .returning();
 
   return created;
+}
+
+export async function listTenantInvitations(input: { tenantId: string }) {
+  return db
+    .select()
+    .from(tenantInvitations)
+    .where(eq(tenantInvitations.tenantId, input.tenantId));
+}
+
+export async function revokeTenantInvitation(input: {
+  tenantId: string;
+  invitationId: string;
+}) {
+  const [revoked] = await db
+    .update(tenantInvitations)
+    .set({
+      status: "revoked",
+    })
+    .where(
+      and(
+        eq(tenantInvitations.id, input.invitationId),
+        eq(tenantInvitations.tenantId, input.tenantId),
+        eq(tenantInvitations.status, "pending"),
+      ),
+    )
+    .returning();
+
+  if (!revoked) {
+    throw new Error("invitation_not_found_or_already_processed");
+  }
+
+  return revoked;
 }
