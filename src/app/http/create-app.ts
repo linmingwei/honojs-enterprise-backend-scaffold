@@ -3,6 +3,7 @@ import type { AppConfig } from "@/shared/config/types";
 import { registerModules } from "@/app/bootstrap/module-registry";
 import { registerAuthModule } from "@/modules/auth";
 import { registerStorageModule } from "@/modules/storage";
+import { registerTenantModule } from "@/modules/tenant";
 import { registerDocs } from "./docs";
 
 export function createApp(config: AppConfig) {
@@ -13,7 +14,7 @@ export function createApp(config: AppConfig) {
 
   registerModules(config, {
     auth: () => registerAuthModule(app, config),
-    tenant: () => {},
+    tenant: () => registerTenantModule(app, config),
     rbac: () => {},
     audit: () => {},
     storage: () => registerStorageModule(app, config),

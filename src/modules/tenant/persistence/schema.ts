@@ -27,3 +27,27 @@ export const tenantMemberships = pgTable(
     ),
   }),
 );
+
+export const tenantInvitations = pgTable(
+  "tenant_invitations",
+  {
+    id: uuid("id").defaultRandom().primaryKey(),
+    tenantId: uuid("tenant_id").notNull(),
+    email: text("email").notNull(),
+    invitedByUserId: text("invited_by_user_id").notNull(),
+    token: text("token").notNull().unique(),
+    status: text("status").notNull().default("pending"),
+    expiresAt: timestamp("expires_at", { withTimezone: true }).notNull(),
+    acceptedAt: timestamp("accepted_at", { withTimezone: true }),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .defaultNow()
+      .notNull(),
+  },
+  (table) => ({
+    tenantInvitationUnique: uniqueIndex("tenant_invitation_unique").on(
+      table.tenantId,
+      table.email,
+      table.status,
+    ),
+  }),
+);

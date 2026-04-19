@@ -15,6 +15,13 @@
       "when": 1776535787337,
       "tag": "0001_white_miek",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1776559300675,
+      "tag": "0002_empty_blink",
+      "breakpoints": true
     }
   ]
 }
