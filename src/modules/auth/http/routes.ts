@@ -1,4 +1,5 @@
 import type { OpenAPIHono } from "@hono/zod-openapi";
+import { and, desc, eq, ilike, or } from "drizzle-orm";
 import { auth } from "@/infrastructure/auth/better-auth";
 import { db } from "@/infrastructure/db/client";
 import { AppError } from "@/shared/errors/app-error";
@@ -30,6 +31,27 @@ const createAdminUserSchema = z.object({
   name: z.string().min(1),
   role: z.string().optional(),
 });
+
+const listAdminUsersSchema = z.object({
+  q: z.string().min(1).optional(),
+  role: z.string().min(1).optional(),
+  limit: z.coerce.number().int().min(1).max(100).default(50),
+});
+
+export type AuthRouteServices = {
+  listUsers: (query: {
+    q?: string;
+    role?: string;
+    limit: number;
+  }) => Promise<
+    {
+      id: string;
+      email: string;
+      name: string;
+      role: string | null;
+    }[]
+  >;
+};
 
 function createAuthProxyRequest(
   request: Request,
@@ -87,7 +109,38 @@ function resolveOtpEndpoint(identifier: ReturnType<typeof resolveLoginIdentifier
   }
 }
 
-export function registerAuthRoutes(app: OpenAPIHono) {
+const defaultAuthRouteServices: AuthRouteServices = {
+  listUsers: async ({ q, role, limit }) => {
+    const qFilter = q
+      ? or(
+          ilike(authUsers.email, `%${q}%`),
+          ilike(authUsers.name, `%${q}%`),
+          ilike(authUsers.username, `%${q}%`),
+          ilike(authUsers.phoneNumber, `%${q}%`),
+        )
+      : undefined;
+    const roleFilter = role ? eq(authUsers.role, role) : undefined;
+    const whereClause =
+      qFilter && roleFilter ? and(qFilter, roleFilter) : (qFilter ?? roleFilter);
+
+    return db
+      .select({
+        id: authUsers.id,
+        email: authUsers.email,
+        name: authUsers.name,
+        role: authUsers.role,
+      })
+      .from(authUsers)
+      .where(whereClause)
+      .orderBy(desc(authUsers.createdAt))
+      .limit(limit);
+  },
+};
+
+export function registerAuthRoutes(
+  app: OpenAPIHono,
+  services: AuthRouteServices = defaultAuthRouteServices,
+) {
   app.post("/api/auth/register", async (c) => {
     const body = registerSchema.parse(await c.req.json());
 
@@ -157,7 +210,8 @@ export function registerAuthRoutes(app: OpenAPIHono) {
   });
 
   app.get("/api/admin/users", async (c) => {
-    const users = await db.select().from(authUsers).limit(50);
+    const query = listAdminUsersSchema.parse(c.req.query());
+    const users = await services.listUsers(query);
     return c.json({ items: users });
   });
 

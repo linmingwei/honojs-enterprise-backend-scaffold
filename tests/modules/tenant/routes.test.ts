@@ -7,6 +7,13 @@ import {
 
 function createTenantRouteServices(): TenantRouteServices {
   return {
+    listTenants: async () => [
+      {
+        id: "tenant-1",
+        name: "Acme",
+        slug: "acme",
+      },
+    ],
     createTenant: async ({ name, slug }) => ({
       id: "tenant-1",
       name,
@@ -89,6 +96,25 @@ function createTenantRouteServices(): TenantRouteServices {
 }
 
 describe("tenant admin routes", () => {
+  it("lists tenants through the tenant module service boundary", async () => {
+    const app = new OpenAPIHono();
+
+    registerTenantRoutes(app, createTenantRouteServices());
+
+    const tenantsRes = await app.request("/api/admin/tenants?q=acme&limit=10");
+
+    expect(tenantsRes.status).toBe(200);
+    expect(await tenantsRes.json()).toEqual({
+      items: [
+        {
+          id: "tenant-1",
+          name: "Acme",
+          slug: "acme",
+        },
+      ],
+    });
+  });
+
   it("creates invitations through the tenant module service boundary", async () => {
     const app = new OpenAPIHono();
 

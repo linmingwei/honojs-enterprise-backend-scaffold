@@ -1,5 +1,5 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
-import { eq } from "drizzle-orm";
+import { desc, eq, ilike, or } from "drizzle-orm";
 import { db } from "@/infrastructure/db/client";
 import { userTenantRoles } from "@/modules/rbac/persistence/schema";
 import { acceptTenantInvitation } from "../application/accept-invitation";
@@ -41,6 +41,35 @@ const createTenantRoute = createRoute({
             id: z.string(),
             name: z.string(),
             slug: z.string(),
+          }),
+        },
+      },
+    },
+  },
+});
+
+const listTenantsRoute = createRoute({
+  method: "get",
+  path: "/api/admin/tenants",
+  request: {
+    query: z.object({
+      q: z.string().min(1).optional(),
+      limit: z.coerce.number().int().min(1).max(100).default(50),
+    }),
+  },
+  responses: {
+    200: {
+      description: "Tenant list",
+      content: {
+        "application/json": {
+          schema: z.object({
+            items: z.array(
+              z.object({
+                id: z.string(),
+                name: z.string(),
+                slug: z.string(),
+              }),
+            ),
           }),
         },
       },
@@ -355,6 +384,13 @@ const revokeTenantInvitationRoute = createRoute({
 });
 
 export type TenantRouteServices = {
+  listTenants: (query: { q?: string; limit: number }) => Promise<
+    {
+      id: string;
+      name: string;
+      slug: string;
+    }[]
+  >;
   createTenant: (input: { name: string; slug: string }) => Promise<{
     id: string;
     name: string;
@@ -456,6 +492,21 @@ export type TenantRouteServices = {
 };
 
 const defaultTenantRouteServices: TenantRouteServices = {
+  listTenants: ({ q, limit }) =>
+    db
+      .select({
+        id: tenants.id,
+        name: tenants.name,
+        slug: tenants.slug,
+      })
+      .from(tenants)
+      .where(
+        q
+          ? or(ilike(tenants.name, `%${q}%`), ilike(tenants.slug, `%${q}%`))
+          : undefined,
+      )
+      .orderBy(desc(tenants.createdAt))
+      .limit(limit),
   createTenant: async ({ name, slug }) => {
     const [created] = await db
       .insert(tenants)
@@ -530,6 +581,12 @@ export function registerTenantRoutes(
   app: OpenAPIHono,
   services: TenantRouteServices = defaultTenantRouteServices,
 ) {
+  app.openapi(listTenantsRoute, async (c) => {
+    const query = c.req.valid("query");
+    const items = await services.listTenants(query);
+    return c.json({ items });
+  });
+
   app.openapi(createTenantRoute, async (c) => {
     const body = c.req.valid("json");
     const created = await services.createTenant(body);
