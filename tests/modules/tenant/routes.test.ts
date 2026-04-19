@@ -53,6 +53,18 @@ function createTenantRouteServices(): TenantRouteServices {
       email: "member@example.com",
       status: "revoked",
     }),
+    revokeRole: async ({ tenantId, userId, roleId }) => ({
+      tenantId,
+      userId,
+      roleId,
+      revoked: true,
+    }),
+    deactivateMember: async ({ tenantId, userId }) => ({
+      id: "membership-1",
+      tenantId,
+      userId,
+      status: "inactive",
+    }),
   };
 }
 
@@ -191,6 +203,52 @@ describe("tenant admin routes", () => {
       tenantId: "tenant-1",
       email: "member@example.com",
       status: "revoked",
+    });
+  });
+
+  it("revokes tenant roles through the tenant module service boundary", async () => {
+    const app = new OpenAPIHono();
+
+    registerTenantRoutes(app, createTenantRouteServices());
+
+    const revokeRoleRes = await app.request("/api/admin/tenants/tenant-1/roles/revoke", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        userId: "user-1",
+        roleId: "role-1",
+      }),
+    });
+
+    expect(revokeRoleRes.status).toBe(200);
+    expect(await revokeRoleRes.json()).toEqual({
+      tenantId: "tenant-1",
+      userId: "user-1",
+      roleId: "role-1",
+      revoked: true,
+    });
+  });
+
+  it("deactivates tenant members through the tenant module service boundary", async () => {
+    const app = new OpenAPIHono();
+
+    registerTenantRoutes(app, createTenantRouteServices());
+
+    const deactivateRes = await app.request(
+      "/api/admin/tenants/tenant-1/members/user-1/deactivate",
+      {
+        method: "POST",
+      },
+    );
+
+    expect(deactivateRes.status).toBe(200);
+    expect(await deactivateRes.json()).toEqual({
+      id: "membership-1",
+      tenantId: "tenant-1",
+      userId: "user-1",
+      status: "inactive",
     });
   });
 });

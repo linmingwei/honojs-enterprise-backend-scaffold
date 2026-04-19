@@ -31,3 +31,23 @@ export async function assignTenantRole(input: AssignTenantRoleInput) {
 
   return existing;
 }
+
+export async function revokeTenantRole(input: AssignTenantRoleInput) {
+  const [revoked] = await db
+    .delete(userTenantRoles)
+    .where(
+      and(
+        eq(userTenantRoles.tenantId, input.tenantId),
+        eq(userTenantRoles.userId, input.userId),
+        eq(userTenantRoles.roleId, input.roleId),
+      ),
+    )
+    .returning();
+
+  return {
+    tenantId: input.tenantId,
+    userId: input.userId,
+    roleId: input.roleId,
+    revoked: Boolean(revoked),
+  };
+}
