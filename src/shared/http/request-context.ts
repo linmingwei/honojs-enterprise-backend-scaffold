@@ -20,3 +20,9 @@ export function parsePermissionHeader(value: string | undefined) {
       .filter(Boolean),
   );
 }
+
+export function getSecurityContext(context: {
+  get(key: string): unknown;
+}): RequestSecurityContext | undefined {
+  return context.get("security") as RequestSecurityContext | undefined;
+}

@@ -1,6 +1,7 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
 import { appModules } from "@/app/bootstrap/app-modules";
 import { getEnabledModules } from "@/app/bootstrap/module-registry";
+import { attachTenantContext } from "@/modules/tenant/http/tenant-context";
 import type { AppConfig } from "@/shared/config/types";
 import { validateEnabledProviders } from "@/shared/config/validate-enabled-providers";
 import { registerDocs } from "./docs";
@@ -10,6 +11,7 @@ export function createApp(config: AppConfig) {
 
   const app = new OpenAPIHono();
 
+  app.use("*", attachTenantContext);
   app.get("/healthz", (c) => c.json({ ok: true }));
   registerDocs(app);
 

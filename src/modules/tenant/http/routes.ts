@@ -1,8 +1,10 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { desc, eq, ilike, or } from "drizzle-orm";
+import { HTTPException } from "hono/http-exception";
 import { db } from "@/infrastructure/db/client";
 import { createEmailSender } from "@/modules/notify/infrastructure/email-sender";
 import { userTenantRoles } from "@/modules/rbac/persistence/schema";
+import { getSecurityContext } from "@/shared/http/request-context";
 import { acceptTenantInvitation } from "../application/accept-invitation";
 import { deactivateTenantMember } from "../application/members";
 import {
@@ -169,6 +171,32 @@ const acceptInvitationRoute = createRoute({
   responses: {
     200: {
       description: "Invitation accepted",
+      content: {
+        "application/json": {
+          schema: z.object({
+            invitationId: z.string(),
+            tenantId: z.string(),
+            userId: z.string(),
+            status: z.string(),
+            membershipId: z.string().nullable().optional(),
+          }),
+        },
+      },
+    },
+  },
+});
+
+const acceptInvitationForCurrentPrincipalRoute = createRoute({
+  method: "post",
+  path: "/api/tenant-invitations/{token}/accept",
+  request: {
+    params: z.object({
+      token: z.string().min(1),
+    }),
+  },
+  responses: {
+    200: {
+      description: "Invitation accepted for the current principal",
       content: {
         "application/json": {
           schema: z.object({
@@ -688,6 +716,22 @@ export function registerTenantRoutes(
   app.openapi(acceptInvitationRoute, async (c) => {
     const body = c.req.valid("json");
     const accepted = await services.acceptInvitation(body);
+    return c.json(accepted);
+  });
+
+  app.openapi(acceptInvitationForCurrentPrincipalRoute, async (c) => {
+    const params = c.req.valid("param");
+    const security = getSecurityContext(c);
+
+    if (!security?.principalId) {
+      throw new HTTPException(401, { message: "Unauthorized" });
+    }
+
+    const accepted = await services.acceptInvitation({
+      token: params.token,
+      userId: security.principalId,
+    });
+
     return c.json(accepted);
   });
 

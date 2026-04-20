@@ -1,5 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import { OpenAPIHono } from "@hono/zod-openapi";
+import { attachTenantContext } from "@/modules/tenant/http/tenant-context";
 import {
   registerTenantRoutes,
   type TenantRouteServices,
@@ -193,6 +194,29 @@ describe("tenant admin routes", () => {
       invitationId: "inv-1",
       tenantId: "tenant-1",
       userId: "user-1",
+      status: "accepted",
+      token: "invite-token",
+    });
+  });
+
+  it("accepts tenant invitations for the current principal", async () => {
+    const app = new OpenAPIHono();
+
+    app.use("*", attachTenantContext);
+    registerTenantRoutes(app, createTenantRouteServices());
+
+    const acceptRes = await app.request("/api/tenant-invitations/invite-token/accept", {
+      method: "POST",
+      headers: {
+        "x-principal-id": "user-42",
+      },
+    });
+
+    expect(acceptRes.status).toBe(200);
+    expect(await acceptRes.json()).toEqual({
+      invitationId: "inv-1",
+      tenantId: "tenant-1",
+      userId: "user-42",
       status: "accepted",
       token: "invite-token",
     });
