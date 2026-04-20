@@ -1,5 +1,5 @@
 {
-  "name": "hono-enterprise-backend",
+  "name": "honojs-enterprise-backend-scaffold",
   "private": true,
   "type": "module",
   "scripts": {
