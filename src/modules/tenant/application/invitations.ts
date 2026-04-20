@@ -1,5 +1,6 @@
 import { and, eq } from "drizzle-orm";
 import { db } from "@/infrastructure/db/client";
+import type { EmailSender } from "@/modules/notify/domain/email-sender";
 import { tenantInvitations } from "../persistence/schema";
 
 export type TenantInvitationInput = {
@@ -28,6 +29,39 @@ export async function createTenantInvitation(input: TenantInvitationInput) {
     .returning();
 
   return created;
+}
+
+export async function issueTenantInvitation(
+  input: TenantInvitationInput,
+  options?: {
+    appBaseUrl?: string;
+    notificationsEnabled?: boolean;
+    emailSender?: EmailSender | null;
+    saveInvitation?: typeof createTenantInvitation;
+  },
+) {
+  const saveInvitation = options?.saveInvitation ?? createTenantInvitation;
+  const invitation = await saveInvitation(input);
+
+  if (options?.notificationsEnabled && options.emailSender) {
+    const acceptUrl = options.appBaseUrl
+      ? `${options.appBaseUrl.replace(/\/$/, "")}/tenant-invitations/accept?token=${encodeURIComponent(invitation.token)}`
+      : null;
+
+    await options.emailSender.send({
+      to: invitation.email,
+      subject: `Invitation to join tenant ${invitation.tenantId}`,
+      html: [
+        `<p>You have been invited to join tenant <strong>${invitation.tenantId}</strong>.</p>`,
+        `<p>Invitation token: <code>${invitation.token}</code></p>`,
+        acceptUrl ? `<p>Accept invitation: <a href="${acceptUrl}">${acceptUrl}</a></p>` : "",
+      ]
+        .filter(Boolean)
+        .join(""),
+    });
+  }
+
+  return invitation;
 }
 
 export async function listTenantInvitations(input: { tenantId: string }) {

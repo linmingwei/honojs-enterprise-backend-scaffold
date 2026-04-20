@@ -1,6 +1,7 @@
 import { createRoute, OpenAPIHono, z } from "@hono/zod-openapi";
 import { desc, eq, ilike, or } from "drizzle-orm";
 import { db } from "@/infrastructure/db/client";
+import { createEmailSender } from "@/modules/notify/infrastructure/email-sender";
 import { userTenantRoles } from "@/modules/rbac/persistence/schema";
 import { acceptTenantInvitation } from "../application/accept-invitation";
 import { deactivateTenantMember } from "../application/members";
@@ -12,10 +13,12 @@ import {
 } from "../application/roles";
 import {
   createTenantInvitation,
+  issueTenantInvitation,
   listTenantInvitations,
   revokeTenantInvitation,
 } from "../application/invitations";
 import { tenantMemberships, tenants } from "../persistence/schema";
+import type { AppConfig } from "@/shared/config/types";
 
 const createTenantRoute = createRoute({
   method: "post",
@@ -491,7 +494,10 @@ export type TenantRouteServices = {
   >;
 };
 
-const defaultTenantRouteServices: TenantRouteServices = {
+export function createTenantRouteServices(config?: AppConfig): TenantRouteServices {
+  const emailSender = config ? createEmailSender(config) : null;
+
+  return {
   listTenants: ({ q, limit }) =>
     db
       .select({
@@ -516,11 +522,19 @@ const defaultTenantRouteServices: TenantRouteServices = {
     return created;
   },
   createInvitation: async ({ tenantId, email, invitedByUserId }) => {
-    const created = await createTenantInvitation({
-      tenantId,
-      email,
-      invitedByUserId,
-    });
+    const created = await issueTenantInvitation(
+      {
+        tenantId,
+        email,
+        invitedByUserId,
+      },
+      {
+        appBaseUrl: config?.auth.baseUrl,
+        notificationsEnabled: config?.features.notify.enabled ?? false,
+        emailSender,
+        saveInvitation: createTenantInvitation,
+      },
+    );
 
     return {
       id: created.id,
@@ -575,11 +589,12 @@ const defaultTenantRouteServices: TenantRouteServices = {
       tenantId,
       userId,
     }),
-};
+  };
+}
 
 export function registerTenantRoutes(
   app: OpenAPIHono,
-  services: TenantRouteServices = defaultTenantRouteServices,
+  services: TenantRouteServices = createTenantRouteServices(),
 ) {
   app.openapi(listTenantsRoute, async (c) => {
     const query = c.req.valid("query");
