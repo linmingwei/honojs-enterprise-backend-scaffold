@@ -45,7 +45,7 @@ export async function issueTenantInvitation(
 
   if (options?.notificationsEnabled && options.emailSender) {
     const acceptUrl = options.appBaseUrl
-      ? `${options.appBaseUrl.replace(/\/$/, "")}/tenant-invitations/accept?token=${encodeURIComponent(invitation.token)}`
+      ? `${options.appBaseUrl.replace(/\/$/, "")}/api/public/tenant-invitations/${encodeURIComponent(invitation.token)}`
       : null;
 
     await options.emailSender.send({
@@ -59,6 +59,20 @@ export async function issueTenantInvitation(
         .filter(Boolean)
         .join(""),
     });
+  }
+
+  return invitation;
+}
+
+export async function getTenantInvitation(input: { token: string }) {
+  const [invitation] = await db
+    .select()
+    .from(tenantInvitations)
+    .where(eq(tenantInvitations.token, input.token))
+    .limit(1);
+
+  if (!invitation) {
+    throw new Error("invitation_not_found");
   }
 
   return invitation;

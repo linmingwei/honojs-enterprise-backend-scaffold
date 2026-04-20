@@ -13,6 +13,7 @@ import {
 } from "../application/roles";
 import {
   createTenantInvitation,
+  getTenantInvitation,
   issueTenantInvitation,
   listTenantInvitations,
   revokeTenantInvitation,
@@ -176,6 +177,32 @@ const acceptInvitationRoute = createRoute({
             userId: z.string(),
             status: z.string(),
             membershipId: z.string().nullable().optional(),
+          }),
+        },
+      },
+    },
+  },
+});
+
+const getInvitationRoute = createRoute({
+  method: "get",
+  path: "/api/public/tenant-invitations/{token}",
+  request: {
+    params: z.object({
+      token: z.string().min(1),
+    }),
+  },
+  responses: {
+    200: {
+      description: "Tenant invitation",
+      content: {
+        "application/json": {
+          schema: z.object({
+            id: z.string(),
+            tenantId: z.string(),
+            email: z.string().email(),
+            status: z.string(),
+            token: z.string(),
           }),
         },
       },
@@ -447,6 +474,13 @@ export type TenantRouteServices = {
     membershipId?: string | null;
     token?: string;
   }>;
+  getInvitation: (input: { token: string }) => Promise<{
+    id: string;
+    tenantId: string;
+    email: string;
+    status: string;
+    token: string;
+  }>;
   listMembers: (input: { tenantId: string }) => Promise<
     {
       id: string;
@@ -568,6 +602,7 @@ export function createTenantRouteServices(config?: AppConfig): TenantRouteServic
       token,
       userId,
     }),
+  getInvitation: ({ token }) => getTenantInvitation({ token }),
   listMembers: ({ tenantId }) =>
     db
       .select()
@@ -654,6 +689,14 @@ export function registerTenantRoutes(
     const body = c.req.valid("json");
     const accepted = await services.acceptInvitation(body);
     return c.json(accepted);
+  });
+
+  app.openapi(getInvitationRoute, async (c) => {
+    const params = c.req.valid("param");
+    const invitation = await services.getInvitation({
+      token: params.token,
+    });
+    return c.json(invitation);
   });
 
   app.openapi(listTenantInvitationsRoute, async (c) => {

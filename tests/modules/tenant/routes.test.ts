@@ -38,6 +38,13 @@ function createTenantRouteServices(): TenantRouteServices {
       status: "accepted",
       token,
     }),
+    getInvitation: async ({ token }) => ({
+      id: "inv-1",
+      tenantId: "tenant-1",
+      email: "member@example.com",
+      status: "pending",
+      token,
+    }),
     listMembers: async ({ tenantId }) => [
       {
         id: "membership-1",
@@ -187,6 +194,23 @@ describe("tenant admin routes", () => {
       tenantId: "tenant-1",
       userId: "user-1",
       status: "accepted",
+      token: "invite-token",
+    });
+  });
+
+  it("looks up tenant invitations through the tenant module service boundary", async () => {
+    const app = new OpenAPIHono();
+
+    registerTenantRoutes(app, createTenantRouteServices());
+
+    const lookupRes = await app.request("/api/public/tenant-invitations/invite-token");
+
+    expect(lookupRes.status).toBe(200);
+    expect(await lookupRes.json()).toEqual({
+      id: "inv-1",
+      tenantId: "tenant-1",
+      email: "member@example.com",
+      status: "pending",
       token: "invite-token",
     });
   });
