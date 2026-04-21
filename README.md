@@ -173,6 +173,21 @@ Once the server is running:
 - Swagger UI: `http://localhost:3000/docs`
 - OpenAPI JSON: `http://localhost:3000/openapi.json`
 
+## Examples
+
+Practical examples live in [`examples/`](./examples/README.md).
+
+- [`examples/http/auth-and-admin.sh`](./examples/http/auth-and-admin.sh)
+- [`examples/http/tenant-invitation-flow.sh`](./examples/http/tenant-invitation-flow.sh)
+- [`examples/http/storage-upload.sh`](./examples/http/storage-upload.sh)
+
+For local development, some tenant-scoped examples use request headers to simulate security context:
+
+- `x-principal-id`
+- `x-tenant-id`
+- `x-global-permissions`
+- `x-tenant-permissions`
+
 ## Useful Scripts
 
 ```bash
@@ -192,4 +207,3 @@ bun run seed:rbac
 bun test
 bun run typecheck
 ```
-

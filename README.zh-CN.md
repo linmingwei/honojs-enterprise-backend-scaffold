@@ -174,6 +174,21 @@ bun run dev:scheduler
 - Swagger UI：`http://localhost:3000/docs`
 - OpenAPI JSON：`http://localhost:3000/openapi.json`
 
+## 示例代码
+
+可直接参考 [`examples/`](./examples/README.md) 目录：
+
+- [`examples/http/auth-and-admin.sh`](./examples/http/auth-and-admin.sh)
+- [`examples/http/tenant-invitation-flow.sh`](./examples/http/tenant-invitation-flow.sh)
+- [`examples/http/storage-upload.sh`](./examples/http/storage-upload.sh)
+
+在当前脚手架阶段，一些租户与权限相关示例会使用请求头模拟 security context：
+
+- `x-principal-id`
+- `x-tenant-id`
+- `x-global-permissions`
+- `x-tenant-permissions`
+
 ## 常用脚本
 
 ```bash
