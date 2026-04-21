@@ -18,3 +18,9 @@ These examples are not runtime modules wired into the app by default. They are r
   Examples of enqueueing background work and registering a scheduler for business jobs.
 - [`business/catalog-assets.example.ts`](./business/catalog-assets.example.ts)
   An example of linking uploaded files to business entities after the storage module returns a file ID.
+- [`business/async-task.example.ts`](./business/async-task.example.ts)
+  Examples of how to enqueue async business work and register recurring tasks.
+- [`business/locks-and-cache.example.ts`](./business/locks-and-cache.example.ts)
+  Examples of cache-aside reads and distributed lock usage.
+- [`business/email-template.example.ts`](./business/email-template.example.ts)
+  A practical way to define and render typed email templates on top of the EmailSender abstraction.

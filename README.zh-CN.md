@@ -181,6 +181,9 @@ bun run dev:scheduler
 - [`examples/business/catalog-module.example.ts`](./examples/business/catalog-module.example.ts)
 - [`examples/business/catalog-jobs.example.ts`](./examples/business/catalog-jobs.example.ts)
 - [`examples/business/catalog-assets.example.ts`](./examples/business/catalog-assets.example.ts)
+- [`examples/business/async-task.example.ts`](./examples/business/async-task.example.ts)
+- [`examples/business/locks-and-cache.example.ts`](./examples/business/locks-and-cache.example.ts)
+- [`examples/business/email-template.example.ts`](./examples/business/email-template.example.ts)
 
 这些示例聚焦的是“如何基于这个脚手架写业务代码”，包括：
 
@@ -189,6 +192,8 @@ bun run dev:scheduler
 - 如何在路由边界做 RBAC 权限校验
 - 如何通过 `QueueBus` 投递后台任务
 - 如何把业务实体和上传后的文件关联起来
+- 如何使用分布式锁与缓存
+- 如何定义和渲染邮件模板
 
 ## 常用脚本
 

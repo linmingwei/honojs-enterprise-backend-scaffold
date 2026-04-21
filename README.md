@@ -180,6 +180,9 @@ Practical examples live in [`examples/`](./examples/README.md).
 - [`examples/business/catalog-module.example.ts`](./examples/business/catalog-module.example.ts)
 - [`examples/business/catalog-jobs.example.ts`](./examples/business/catalog-jobs.example.ts)
 - [`examples/business/catalog-assets.example.ts`](./examples/business/catalog-assets.example.ts)
+- [`examples/business/async-task.example.ts`](./examples/business/async-task.example.ts)
+- [`examples/business/locks-and-cache.example.ts`](./examples/business/locks-and-cache.example.ts)
+- [`examples/business/email-template.example.ts`](./examples/business/email-template.example.ts)
 
 These examples focus on how to write business code on top of the scaffold:
 
@@ -188,6 +191,8 @@ These examples focus on how to write business code on top of the scaffold:
 - how to protect routes with RBAC permission checks
 - how to enqueue jobs through `QueueBus`
 - how to link business entities to uploaded files
+- how to use distributed locks and cache
+- how to define and render email templates
 
 ## Useful Scripts
 
