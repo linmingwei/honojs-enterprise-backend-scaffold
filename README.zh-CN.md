@@ -178,16 +178,17 @@ bun run dev:scheduler
 
 可直接参考 [`examples/`](./examples/README.md) 目录：
 
-- [`examples/http/auth-and-admin.sh`](./examples/http/auth-and-admin.sh)
-- [`examples/http/tenant-invitation-flow.sh`](./examples/http/tenant-invitation-flow.sh)
-- [`examples/http/storage-upload.sh`](./examples/http/storage-upload.sh)
+- [`examples/business/catalog-module.example.ts`](./examples/business/catalog-module.example.ts)
+- [`examples/business/catalog-jobs.example.ts`](./examples/business/catalog-jobs.example.ts)
+- [`examples/business/catalog-assets.example.ts`](./examples/business/catalog-assets.example.ts)
 
-在当前脚手架阶段，一些租户与权限相关示例会使用请求头模拟 security context：
+这些示例聚焦的是“如何基于这个脚手架写业务代码”，包括：
 
-- `x-principal-id`
-- `x-tenant-id`
-- `x-global-permissions`
-- `x-tenant-permissions`
+- 如何组织一个租户级业务模块
+- 如何暴露 OpenAPI 路由
+- 如何在路由边界做 RBAC 权限校验
+- 如何通过 `QueueBus` 投递后台任务
+- 如何把业务实体和上传后的文件关联起来
 
 ## 常用脚本
 

@@ -177,16 +177,17 @@ Once the server is running:
 
 Practical examples live in [`examples/`](./examples/README.md).
 
-- [`examples/http/auth-and-admin.sh`](./examples/http/auth-and-admin.sh)
-- [`examples/http/tenant-invitation-flow.sh`](./examples/http/tenant-invitation-flow.sh)
-- [`examples/http/storage-upload.sh`](./examples/http/storage-upload.sh)
+- [`examples/business/catalog-module.example.ts`](./examples/business/catalog-module.example.ts)
+- [`examples/business/catalog-jobs.example.ts`](./examples/business/catalog-jobs.example.ts)
+- [`examples/business/catalog-assets.example.ts`](./examples/business/catalog-assets.example.ts)
 
-For local development, some tenant-scoped examples use request headers to simulate security context:
+These examples focus on how to write business code on top of the scaffold:
 
-- `x-principal-id`
-- `x-tenant-id`
-- `x-global-permissions`
-- `x-tenant-permissions`
+- how to structure a tenant-scoped module
+- how to expose OpenAPI routes
+- how to protect routes with RBAC permission checks
+- how to enqueue jobs through `QueueBus`
+- how to link business entities to uploaded files
 
 ## Useful Scripts
 

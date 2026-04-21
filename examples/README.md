@@ -1,21 +1,20 @@
 # Examples
 
-This folder contains copy-paste friendly examples for the current scaffold.
+This folder focuses on how to write business code on top of the scaffold.
 
-## Important note about request context
+These examples are not runtime modules wired into the app by default. They are reference implementations that follow the same conventions as the repository:
 
-The project already has request security context middleware, but some admin and tenant flows are still demonstrated with request headers in development:
-
-- `x-principal-id`
-- `x-tenant-id`
-- `x-global-permissions`
-- `x-tenant-permissions`
-
-These headers are useful for local examples and testing until the full session-derived authorization flow is tightened further.
+- schema and persistence near the module
+- application services for orchestration
+- Hono OpenAPI routes for HTTP exposure
+- RBAC permission checks at the route boundary
+- Queue and storage abstractions used from business code instead of vendor SDKs directly
 
 ## Files
 
-- [`http/auth-and-admin.sh`](./http/auth-and-admin.sh): register, login, OTP request, and admin user management
-- [`http/tenant-invitation-flow.sh`](./http/tenant-invitation-flow.sh): tenant creation, invitation flow, lookup, accept, and member/role inspection
-- [`http/storage-upload.sh`](./http/storage-upload.sh): signed upload URL generation and object upload example
-
+- [`business/catalog-module.example.ts`](./business/catalog-module.example.ts)
+  A tenant-scoped business module example with schema, list/create routes, and permission checks.
+- [`business/catalog-jobs.example.ts`](./business/catalog-jobs.example.ts)
+  Examples of enqueueing background work and registering a scheduler for business jobs.
+- [`business/catalog-assets.example.ts`](./business/catalog-assets.example.ts)
+  An example of linking uploaded files to business entities after the storage module returns a file ID.
