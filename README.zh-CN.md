@@ -181,7 +181,10 @@ bun run dev:scheduler
 - [`examples/business/catalog-module.example.ts`](./examples/business/catalog-module.example.ts)
 - [`examples/business/catalog-jobs.example.ts`](./examples/business/catalog-jobs.example.ts)
 - [`examples/business/catalog-assets.example.ts`](./examples/business/catalog-assets.example.ts)
-- [`examples/business/async-task.example.ts`](./examples/business/async-task.example.ts)
+- [`examples/business/async-task/task-definitions.example.ts`](./examples/business/async-task/task-definitions.example.ts)
+- [`examples/business/async-task/enqueue.example.ts`](./examples/business/async-task/enqueue.example.ts)
+- [`examples/business/async-task/worker.example.ts`](./examples/business/async-task/worker.example.ts)
+- [`examples/business/async-task/scheduler.example.ts`](./examples/business/async-task/scheduler.example.ts)
 - [`examples/business/locks-and-cache.example.ts`](./examples/business/locks-and-cache.example.ts)
 - [`examples/business/email-template.example.ts`](./examples/business/email-template.example.ts)
 
@@ -190,7 +193,7 @@ bun run dev:scheduler
 - 如何组织一个租户级业务模块
 - 如何暴露 OpenAPI 路由
 - 如何在路由边界做 RBAC 权限校验
-- 如何通过 `QueueBus` 投递后台任务
+- 如何完整定义异步任务、enqueue、消费和定时调度
 - 如何把业务实体和上传后的文件关联起来
 - 如何使用分布式锁与缓存
 - 如何定义和渲染邮件模板
